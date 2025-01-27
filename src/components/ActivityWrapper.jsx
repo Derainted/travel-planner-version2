@@ -6,27 +6,31 @@ import ActivityEditForm from "./ActivityEditForm";
 const ActivityWrapper = () => {
   const [activities, setActivities] = useState([]);
   const [id, setNewId] = useState(1);
+  const [error, setError] = useState(""); // Error state to hold global errors
 
-  const addActivities = (activity) => {
+  const addActivities = (activity, destination) => {
+    if (!activity.trim() || !destination.trim()) {
+      setError("Both activity and destination are required.");
+      return;
+    }
+    setError(""); // Clear error if input is valid
+
     const newActivity = {
       id: id,
       activity: activity,
+      destination: destination,
+      completed: false,
+      isEditing: false
     };
 
-    // updating states...
     setActivities([...activities, newActivity]);
     setNewId(id + 1);
-
-    console.log([...activities, newActivity]);
   };
 
-  // Mapping through the activies for updating the completed value..
   const toggleComplete = (id) => {
     setActivities(
       activities.map((activity) =>
-        activity.id === id
-          ? { ...activity, completed: !activity.completed }
-          : activity
+        activity.id === id ? { ...activity, completed: !activity.completed } : activity
       )
     );
   };
@@ -38,33 +42,39 @@ const ActivityWrapper = () => {
   const editActivity = (id) => {
     setActivities(
       activities.map((activity) =>
-        activity.id === id
-          ? { ...activity, isEditing: !activity.isEditing }
-          : activity
+        activity.id === id ? { ...activity, isEditing: !activity.isEditing } : activity
       )
     );
   };
 
-  const editTask = (task, id) => {
+  const editTask = (updatedTask, id) => {
     setActivities(
       activities.map((activity) =>
         activity.id === id
-          ? { ...activity, activity: task, isEditing: false}
+          ? { ...activity, activity: updatedTask.activity, destination: updatedTask.destination, isEditing: false }
           : activity
       )
     );
   };
 
   return (
-    <div>
-      
-      <ActivityForm addActivities={addActivities} heading="Travel Planer" />
-      <ul>
+    <section className="container mt-5">
+      <ActivityForm addActivities={addActivities} heading="Travel Planner" />
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      <ul className="list-group mt-4">
         {activities.map((activity) =>
           activity.isEditing ? (
-            <ActivityEditForm key={activity.id} editActivity={editTask} task={activity} />
+            <ActivityEditForm
+              key={activity.id}
+              editActivity={editTask}
+              task={activity}
+            />
           ) : (
-            <li key={activity.id}>
+            <li key={activity.id} className="list-group-item d-flex justify-content-between align-items-center mb-3">
               <Activity
                 task={activity}
                 toggleComplete={toggleComplete}
@@ -75,7 +85,7 @@ const ActivityWrapper = () => {
           )
         )}
       </ul>
-    </div>
+    </section>
   );
 };
 
